@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
+
 @Injectable()
 export class UserService {
   constructor(
@@ -23,4 +24,9 @@ export class UserService {
 
     return this.usersRepository.save(newUser);
   }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+
 }
