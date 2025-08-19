@@ -1,33 +1,36 @@
+// src/app.module.ts
+
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { ChatModule } from './chat/chat.module';
+import * as process from 'process';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true, // Makes the ConfigService available everywhere
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         type: 'postgres',
-        host: configService.get<string>('POSTGRES_HOST'),
-        port: configService.get<number>('POSTGRES_PORT'),
-        username: configService.get<string>('POSTGRES_USER'),
-        password: configService.get<string>('POSTGRES_PASSWORD'),
-        database: configService.get<string>('POSTGRES_DB'),
-        entities: [User], // We'll add our entities here later
-        synchronize: true, // Auto-create tables (for development only)
+        host: process.env.POSTGRES_HOST, 
+        port: parseInt(process.env.POSTGRES_PORT, 10), 
+        username: process.env.POSTGRES_USER, 
+        password: process.env.POSTGRES_PASSWORD, 
+        database: process.env.POSTGRES_DB, 
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
       }),
-      inject: [ConfigService],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
     }),
     UserModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
