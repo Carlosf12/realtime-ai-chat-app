@@ -2,10 +2,14 @@ import { Controller, Post, Body, Get, UnauthorizedException } from '@nestjs/comm
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService
+  ) {}
 
   @Post('signup')
   create(@Body() createUserDto: CreateUserDto) {
@@ -23,6 +27,10 @@ export class UserController {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return user;
+
+    const payload = { username: user.username, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }
